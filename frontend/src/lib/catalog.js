@@ -1,0 +1,15 @@
+export const CATEGORIES = [
+  { value: "bodies", label: "Bodies" },
+  { value: "croppeds", label: "Croppeds" },
+  { value: "vestidos", label: "Vestidos" },
+  { value: "saias", label: "Saias" },
+  { value: "calcas", label: "Calças" },
+];
+
+export const categoryLabel = (v) => CATEGORIES.find((c) => c.value === v)?.label || v;
+
+export const imgUrl = (id) => `${process.env.REACT_APP_BACKEND_URL}/api/public/images/${id}`;
+
+export const ADMIN_PATH = "/painel-mb";
+
+export const WHATSAPP_NUMBER = "55<REMOVED_PHONE>";
