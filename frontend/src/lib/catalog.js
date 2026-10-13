@@ -12,4 +12,5 @@ export const imgUrl = (id) => `${process.env.REACT_APP_BACKEND_URL}/api/public/i
 
 export const ADMIN_PATH = "/painel-mb";
 
-export const WHATSAPP_NUMBER = "55<REMOVED_PHONE>";
+
+export const WHATSAPP_NUMBER = "5516991956085";
