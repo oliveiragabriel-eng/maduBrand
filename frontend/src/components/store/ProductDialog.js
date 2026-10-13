@@ -38,13 +38,13 @@ export const ProductDialog = ({ product, onClose }) => {
   const colors = [...new Set(variants.map((v) => v.color))];
   const sizesForColor = variants.filter((v) => v.color === color).map((v) => v.size);
   const variant = variants.find((v) => v.color === color && v.size === size);
-  const photos = useMemo(() => {
+  const photos = (() => {
   const own = variants
     .filter((v) => v.color === color)
     .flatMap((v) => v.photos || []);
 
   return own.length ? own : product?.photos || [];
-}, [variants, color, product]);
+})();
 
   const pickColor = (c) => {
     setColor(c);
