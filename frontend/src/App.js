@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { api } from "@/lib/api";
 import { ADMIN_PATH } from "@/lib/catalog";
@@ -10,6 +16,7 @@ import Storefront from "@/pages/Storefront";
 
 const Admin = ({ login }) => {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!localStorage.getItem("madu_token")) {
@@ -25,6 +32,7 @@ const Admin = ({ login }) => {
   const logout = () => {
     localStorage.removeItem("madu_token");
     setUser(false);
+    navigate("/");
   };
 
   if (user === null) {
