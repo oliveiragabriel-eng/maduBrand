@@ -17,7 +17,10 @@ export const SaleForm = ({ open, onOpenChange, clothes, onSave, saving }) => {
   }, [open]);
 
   const set = (patch) => setF((p) => ({ ...p, ...patch }));
-  const pickItem = (id) => set({ clothing_id: id, unit_price: String(clothes.find((c) => c.id === id)?.price ?? ""), quantity: "1" });
+  const pickItem = (id) => {
+    const selected = clothes.find((c) => c.id === id);
+    set({ clothing_id: id, unit_price: String(selected?.promotional_price ?? selected?.price ?? ""), quantity: "1" });
+  };
   const pickPayment = (m) => set({ payment_method: m, paid: m !== "crediario" && f.type === "venda" });
   const pickType = (t) => set({ type: t, paid: t === "venda" && f.payment_method !== "crediario" });
 

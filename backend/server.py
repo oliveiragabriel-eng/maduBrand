@@ -20,7 +20,7 @@ from fastapi.responses import StreamingResponse, Response
 from starlette.concurrency import run_in_threadpool
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 from starlette.middleware.cors import CORSMiddleware
 
 client = AsyncIOMotorClient(os.environ['MONGO_URL'])
@@ -60,7 +60,14 @@ class ClothingIn(BaseModel):
     color: str = Field(min_length=1)
     cost: float = Field(ge=0)
     price: float = Field(ge=0)
+    promotional_price: Optional[float] = Field(default=None, ge=0)
     quantity: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def validate_promotional_price(self):
+        if self.promotional_price is not None and self.promotional_price > self.price:
+            raise ValueError("O valor promocional não pode ser maior que o preço de venda")
+        return self
 
 
 class Clothing(BaseDocument, ClothingIn):
@@ -229,7 +236,7 @@ async def public_image(file_id: str):
         data = await stream.read()
     except Exception:
         raise HTTPException(404, "Imagem não encontrada")
-    return Response(content=data, media_type=rec["content_type"], headers={"Cache-Control": "public, max-age=86400"})
+    return Response(content=data, media_type=rec["content_type"], headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @api.get("/public/catalog")
@@ -240,10 +247,12 @@ async def public_catalog():
         key = f"{c.category}:{c.name.strip().lower()}"
         p = products.setdefault(key, {"key": key, "name": c.name.strip(), "category": c.category, "description": "", "variants": []})
         p["description"] = p["description"] or c.description
-        p["variants"].append({"id": c.id, "size": c.size, "color": c.color, "price": c.price, "quantity": c.quantity, "photos": c.photos})
+        p["variants"].append({"id": c.id, "size": c.size, "color": c.color, "price": c.price, "promotional_price": c.promotional_price, "quantity": c.quantity, "photos": c.photos})
     for p in products.values():
         prices = [v["price"] for v in p["variants"]]
         p["min_price"], p["max_price"] = min(prices), max(prices)
+        effective_prices = [v["promotional_price"] if v["promotional_price"] is not None else v["price"] for v in p["variants"]]
+        p["min_effective_price"], p["max_effective_price"] = min(effective_prices), max(effective_prices)
         p["photos"] = [ph for v in p["variants"] for ph in v["photos"]]
     return list(products.values())
 

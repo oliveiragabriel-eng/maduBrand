@@ -87,8 +87,8 @@ def test_public_catalog_grouping_and_cost_hidden(auth_headers, jpg_bytes, create
 
     base = {"name": "TEST_Vestido Linho", "category": "vestidos", "description": "Tecido leve",
             "photos": [photo_id], "cost": 60.0, "price": 189.9}
-    v1 = {**base, "size": "P", "color": "Caramelo", "quantity": 3}
-    v2 = {**base, "size": "M", "color": "Preto", "quantity": 2}
+    v1 = {**base, "size": "P", "color": "Caramelo", "promotional_price": 169.9, "quantity": 3}
+    v2 = {**base, "size": "M", "color": "Preto", "promotional_price": None, "quantity": 2}
     v3 = {**base, "size": "G", "color": "Preto", "quantity": 0}  # out of stock, must not appear
 
     for v in (v1, v2, v3):
@@ -109,11 +109,13 @@ def test_public_catalog_grouping_and_cost_hidden(auth_headers, jpg_bytes, create
     assert p["category"] == "vestidos"
     assert p["description"] == "Tecido leve"
     assert p["min_price"] == 189.9 and p["max_price"] == 189.9
+    assert p["min_effective_price"] == 169.9 and p["max_effective_price"] == 189.9
     # Only 2 variants (qty>0)
     assert len(p["variants"]) == 2
     for v in p["variants"]:
         assert v["quantity"] > 0
         assert "cost" not in v
+    assert any(v["promotional_price"] == 169.9 for v in p["variants"])
 
 
 def test_public_catalog_requires_no_auth():

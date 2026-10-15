@@ -10,6 +10,9 @@ export const categoryLabel = (v) => CATEGORIES.find((c) => c.value === v)?.label
 
 export const imgUrl = (id) => `${process.env.REACT_APP_BACKEND_URL}/api/public/images/${id}`;
 
+export const effectivePrice = (variant) => variant?.promotional_price ?? variant?.price ?? 0;
+export const pixPrice = (price) => Number(price || 0) * 0.95;
+
 export const ADMIN_PATH = "/painel-mb";
 
 

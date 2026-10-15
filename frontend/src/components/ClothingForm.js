@@ -6,7 +6,7 @@ import { CATEGORIES } from "@/lib/catalog";
 import { PhotoUploader } from "@/components/PhotoUploader";
 
 const SIZES = ["PP", "P", "M", "G", "GG", "XG", "Único", "34", "36", "38", "40", "42", "44", "46"];
-const EMPTY = { name: "", category: "bodies", description: "", photos: [], size: "M", color: "", cost: "", price: "", quantity: "1" };
+const EMPTY = { name: "", category: "bodies", description: "", photos: [], size: "M", color: "", cost: "", price: "", promotional_price: "", quantity: "1" };
 const inputCls = "w-full rounded-xl border border-[#2B1810]/15 bg-[#FAF6F0] px-4 py-3 outline-none focus:border-[#8B7355] transition-colors";
 
 export const ClothingForm = ({ open, onOpenChange, initial, onSave, saving }) => {
@@ -14,16 +14,20 @@ export const ClothingForm = ({ open, onOpenChange, initial, onSave, saving }) =>
 
   useEffect(() => {
     if (open) {
-      setF(initial ? { ...EMPTY, ...initial, cost: String(initial.cost), price: String(initial.price), quantity: String(initial.quantity) } : EMPTY);
+      setF(initial ? { ...EMPTY, ...initial, cost: String(initial.cost), price: String(initial.price), promotional_price: initial.promotional_price == null ? "" : String(initial.promotional_price), quantity: String(initial.quantity) } : EMPTY);
     }
   }, [open, initial]);
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const profit = (parseFloat(f.price) || 0) - (parseFloat(f.cost) || 0);
+  const promotionalPrice = parseFloat(f.promotional_price);
+  const promotionalProfit = Number.isFinite(promotionalPrice) ? promotionalPrice - (parseFloat(f.cost) || 0) : null;
 
   const submit = (e) => {
     e.preventDefault();
-    onSave({ name: f.name.trim(), category: f.category, description: f.description.trim(), photos: f.photos, size: f.size, color: f.color.trim(), cost: parseFloat(f.cost) || 0, price: parseFloat(f.price) || 0, quantity: parseInt(f.quantity, 10) || 0 });
+    const price = parseFloat(f.price) || 0;
+    const promotional_price = f.promotional_price.trim() === "" ? null : promotionalPrice;
+    onSave({ name: f.name.trim(), category: f.category, description: f.description.trim(), photos: f.photos, size: f.size, color: f.color.trim(), cost: parseFloat(f.cost) || 0, price, promotional_price, quantity: parseInt(f.quantity, 10) || 0 });
   };
 
   return (
@@ -60,10 +64,15 @@ export const ClothingForm = ({ open, onOpenChange, initial, onSave, saving }) =>
             <L label="Custo pago (R$)"><input data-testid="clothing-cost-input" type="number" step="0.01" min="0" className={inputCls} value={f.cost} onChange={set("cost")} required /></L>
             <L label="Preço de venda (R$)"><input data-testid="clothing-price-input" type="number" step="0.01" min="0" className={inputCls} value={f.price} onChange={set("price")} required /></L>
           </div>
+          <L label="Valor promocional (R$)">
+            <input data-testid="clothing-promotional-price-input" type="number" step="0.01" min="0" className={inputCls} value={f.promotional_price} onChange={set("promotional_price")} placeholder="Opcional" />
+            <span className="block mt-1 text-xs text-[#8B7355]">Se preenchido, aparece como oferta no catálogo.</span>
+          </L>
           <L label="Quantidade em estoque"><input data-testid="clothing-stock-input" type="number" min="0" step="1" className={inputCls} value={f.quantity} onChange={set("quantity")} required /></L>
           <div className="rounded-2xl brown-blend text-[#F3ECE2] p-5" data-testid="clothing-form-profit-preview">
             <p className="text-xs uppercase tracking-wider text-[#D4A373]">Lucro por peça</p>
             <p className="font-serif text-3xl mt-1">{brl(profit)}</p>
+            {promotionalProfit !== null && <p className="text-sm text-[#E8DCCB]/80 mt-1">Com promoção: {brl(promotionalProfit)}</p>}
           </div>
           <button data-testid="clothing-save-button" disabled={saving} className="w-full rounded-full bg-[#2B1810] text-[#F3ECE2] py-4 font-medium hover:bg-[#5A3A26] transition-colors disabled:opacity-60">
             {saving ? "Salvando..." : "Salvar"}

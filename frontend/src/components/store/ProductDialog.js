@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { brl } from "@/lib/api";
-import { categoryLabel, WHATSAPP_NUMBER } from "@/lib/catalog";
+import { categoryLabel, effectivePrice, imgUrl, pixPrice, WHATSAPP_NUMBER } from "@/lib/catalog";
 import { ProductPhoto } from "@/components/store/ProductCard";
 
 const buildMessage = (p, v, qty) =>
@@ -24,9 +24,10 @@ const buildMessage = (p, v, qty) =>
     `Cor: ${v.color}`,
     `Tamanho: ${v.size}`,
     `Quantidade: ${qty}`,
-    `Valor: ${brl(v.price)}${
-      qty > 1 ? ` cada · Total: ${brl(v.price * qty)}` : ""
+    `Valor: ${brl(effectivePrice(v))}${
+      qty > 1 ? ` cada · Total: ${brl(effectivePrice(v) * qty)}` : ""
     }`,
+    v.promotional_price != null ? `Preço original: ${brl(v.price)}` : null,
     p.description ? `Descrição: ${p.description}` : null,
     "",
     "Podemos fechar a compra?",
@@ -111,12 +112,11 @@ export const ProductDialog = ({ product, onClose }) => {
                 {product.name}
               </DialogTitle>
 
-              <p
-                className="text-2xl font-semibold text-[#2B1810] mt-3"
-                data-testid="product-dialog-price"
-              >
-                {variant ? brl(variant.price) : "—"}
-              </p>
+              <div className="mt-3" data-testid="product-dialog-price">
+                {variant?.promotional_price != null && <p className="text-sm text-[#8B7355] line-through">{brl(variant.price)}</p>}
+                <p className="text-2xl font-semibold text-[#2B1810]">{variant ? brl(effectivePrice(variant)) : "—"}</p>
+                {variant && <p className="text-xs text-[#7A3E24] mt-1">-5% no Pix, dinheiro ou débito: {brl(pixPrice(effectivePrice(variant)))}</p>}
+              </div>
 
               <DialogDescription
                 className="text-sm text-[#6B5A4E] mt-4 whitespace-pre-line"
@@ -174,6 +174,16 @@ export const ProductDialog = ({ product, onClose }) => {
 const Gallery = ({ photos, active, onPick, name }) => {
   const hasMultiplePhotos = photos.length > 1;
 
+  useEffect(() => {
+    if (!hasMultiplePhotos) return;
+    [photos[(active + 1) % photos.length], photos[(active - 1 + photos.length) % photos.length]]
+      .filter(Boolean)
+      .forEach((id) => {
+        const image = new Image();
+        image.src = imgUrl(id);
+      });
+  }, [active, hasMultiplePhotos, photos]);
+
   const previousPhoto = () => {
     onPick((active - 1 + photos.length) % photos.length);
   };
@@ -188,6 +198,7 @@ const Gallery = ({ photos, active, onPick, name }) => {
         <ProductPhoto
           id={photos[active]}
           alt={name}
+          loading="eager"
           className="w-full aspect-[3/4] md:h-full md:aspect-auto md:min-h-[520px]"
         />
 
