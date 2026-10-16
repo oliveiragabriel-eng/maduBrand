@@ -175,14 +175,24 @@ const Gallery = ({ photos, active, onPick, name }) => {
   const hasMultiplePhotos = photos.length > 1;
 
   useEffect(() => {
-    if (!hasMultiplePhotos) return;
-    [photos[(active + 1) % photos.length], photos[(active - 1 + photos.length) % photos.length]]
-      .filter(Boolean)
-      .forEach((id) => {
-        const image = new Image();
-        image.src = imgUrl(id);
-      });
-  }, [active, hasMultiplePhotos, photos]);
+    const pending = [...new Set(photos.filter(Boolean))].filter((_, i) => i !== active);
+    if (!pending.length) return undefined;
+
+    let next = 0;
+    let cancelled = false;
+    const loadNext = () => {
+      if (cancelled || next >= pending.length) return;
+      const image = new Image();
+      image.decoding = "async";
+      image.onload = image.onerror = loadNext;
+      image.src = imgUrl(pending[next++]);
+    };
+
+    // Load every photo of the opened product, but only two at a time so the
+    // first visible image and the rest of the storefront keep priority.
+    Array.from({ length: Math.min(2, pending.length) }, loadNext);
+    return () => { cancelled = true; };
+  }, [photos, active]);
 
   const previousPhoto = () => {
     onPick((active - 1 + photos.length) % photos.length);

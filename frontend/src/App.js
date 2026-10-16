@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import "@/App.css";
 import {
   BrowserRouter,
@@ -10,9 +10,16 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { api } from "@/lib/api";
 import { ADMIN_PATH } from "@/lib/catalog";
-import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
 import Storefront from "@/pages/Storefront";
+
+const Login = lazy(() => import("@/pages/Login"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+
+const AdminLoading = () => (
+  <div className="min-h-screen flex items-center justify-center font-serif text-2xl text-[#8B7355]">
+    Madu Brand
+  </div>
+);
 
 const Admin = ({ login }) => {
   const [user, setUser] = useState(null);
@@ -38,8 +45,8 @@ const Admin = ({ login }) => {
   if (user === null) {
     return <div className="min-h-screen flex items-center justify-center font-serif text-2xl text-[#8B7355]">Madu Brand</div>;
   }
-  if (login) return user ? <Navigate to={ADMIN_PATH} /> : <Login onLogin={setUser} />;
-  return user ? <Dashboard user={user} onLogout={logout} /> : <Navigate to={`${ADMIN_PATH}/login`} />;
+  if (login) return user ? <Navigate to={ADMIN_PATH} /> : <Suspense fallback={<AdminLoading />}><Login onLogin={setUser} /></Suspense>;
+  return user ? <Suspense fallback={<AdminLoading />}><Dashboard user={user} onLogout={logout} /></Suspense> : <Navigate to={`${ADMIN_PATH}/login`} />;
 };
 
 function App() {
