@@ -7,6 +7,7 @@ load_dotenv(ROOT_DIR / '.env')
 import os
 import re
 import logging
+import time
 from datetime import datetime, timezone, timedelta
 from typing import Annotated, List, Literal, Optional
 from zoneinfo import ZoneInfo
@@ -16,7 +17,7 @@ import jwt
 from bson import ObjectId
 import json
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, UploadFile, File
-from fastapi.responses import StreamingResponse, Response
+from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.concurrency import run_in_threadpool
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
@@ -30,6 +31,14 @@ image_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="product_images")
 JWT_ALGORITHM = "HS256"
 app = FastAPI()
 api = APIRouter(prefix="/api")
+PUBLIC_CATALOG_CACHE_TTL = 60
+_public_catalog_cache = None
+
+
+@app.get("/health", include_in_schema=False)
+async def health():
+    """Lightweight liveness endpoint for Render and external monitors."""
+    return {"status": "ok"}
 
 PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, ObjectId) else v)]
 
@@ -241,20 +250,33 @@ async def public_image(file_id: str):
 
 @api.get("/public/catalog")
 async def public_catalog():
-    docs = [Clothing.from_mongo(d) for d in await db.clothes.find({"quantity": {"$gt": 0}}).sort("created_at", -1).to_list(5000)]
+    global _public_catalog_cache
+    now = time.monotonic()
+    if _public_catalog_cache and now - _public_catalog_cache["created_at"] < PUBLIC_CATALOG_CACHE_TTL:
+        return JSONResponse(content=_public_catalog_cache["data"], headers={"Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=60"})
+
+    projection = {
+        "name": 1, "category": 1, "description": 1, "size": 1, "color": 1,
+        "price": 1, "promotional_price": 1, "quantity": 1, "photos": 1, "created_at": 1,
+    }
+    docs = await db.clothes.find({"quantity": {"$gt": 0}}, projection).sort("created_at", -1).limit(5000).to_list(5000)
     products = {}
     for c in docs:
-        key = f"{c.category}:{c.name.strip().lower()}"
-        p = products.setdefault(key, {"key": key, "name": c.name.strip(), "category": c.category, "description": "", "variants": []})
-        p["description"] = p["description"] or c.description
-        p["variants"].append({"id": c.id, "size": c.size, "color": c.color, "price": c.price, "promotional_price": c.promotional_price, "quantity": c.quantity, "photos": c.photos})
+        name = c.get("name", "").strip()
+        category = c.get("category", "bodies")
+        key = f"{category}:{name.lower()}"
+        p = products.setdefault(key, {"key": key, "name": name, "category": category, "description": "", "variants": []})
+        p["description"] = p["description"] or c.get("description", "")
+        p["variants"].append({"id": str(c["_id"]), "size": c.get("size", ""), "color": c.get("color", ""), "price": c.get("price", 0), "promotional_price": c.get("promotional_price"), "quantity": c.get("quantity", 0), "photos": c.get("photos", [])})
     for p in products.values():
         prices = [v["price"] for v in p["variants"]]
         p["min_price"], p["max_price"] = min(prices), max(prices)
         effective_prices = [v["promotional_price"] if v["promotional_price"] is not None else v["price"] for v in p["variants"]]
         p["min_effective_price"], p["max_effective_price"] = min(effective_prices), max(effective_prices)
         p["photos"] = [ph for v in p["variants"] for ph in v["photos"]]
-    return list(products.values())
+    data = list(products.values())
+    _public_catalog_cache = {"created_at": now, "data": data}
+    return JSONResponse(content=data, headers={"Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=60"})
 
 
 @api.get("/finance/summary")

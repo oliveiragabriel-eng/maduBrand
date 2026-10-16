@@ -76,6 +76,12 @@ def test_public_image_404(auth_headers):
     assert r.status_code == 404
 
 
+def test_health_requires_no_auth():
+    r = requests.get(f"{BASE_URL}/health", timeout=30)
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+
+
 # --- Public catalog grouping & cost hidden & qty0 excluded ---
 def test_public_catalog_grouping_and_cost_hidden(auth_headers, jpg_bytes, created_resources):
     # upload one photo
