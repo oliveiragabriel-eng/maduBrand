@@ -1,17 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { CATEGORIES } from "@/lib/catalog";
+import { CATEGORIES, readPublicCatalogCache, writePublicCatalogCache } from "@/lib/catalog";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductDialog } from "@/components/store/ProductDialog";
 import { StoreNav, StoreFooter } from "@/components/store/StoreNav";
 
 export default function Storefront() {
-  const [products, setProducts] = useState(null);
+  const [products, setProducts] = useState(() => readPublicCatalogCache());
   const [category, setCategory] = useState("todos");
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    api.get("/public/catalog").then((r) => setProducts(r.data)).catch(() => setProducts([]));
+    let active = true;
+    api.get("/public/catalog")
+      .then((r) => {
+        if (!active) return;
+        const nextProducts = Array.isArray(r.data) ? r.data : [];
+        writePublicCatalogCache(nextProducts);
+        setProducts(nextProducts);
+      })
+      .catch(() => {
+        if (active) setProducts((current) => current === null ? [] : current);
+      });
+    return () => { active = false; };
   }, []);
 
   const list = useMemo(() => (products || []).filter((p) => category === "todos" || p.category === category), [products, category]);
