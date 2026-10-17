@@ -2,6 +2,21 @@ import { Shirt } from "lucide-react";
 import { brl } from "@/lib/api";
 import { categoryLabel, effectivePrice, imgUrl, pixPrice } from "@/lib/catalog";
 
+const retryImageAfterTransientError = (event) => {
+  const image = event.currentTarget;
+  const retry = Number(image.dataset.retry || 0);
+  if (retry >= 3) return;
+
+  image.dataset.retry = String(retry + 1);
+  window.setTimeout(() => {
+    if (!image.isConnected) return;
+    const url = new URL(image.currentSrc || image.src, window.location.href);
+    url.searchParams.set("retry", String(retry + 1));
+    image.removeAttribute("srcset");
+    image.src = url.toString();
+  }, [1500, 3000, 6000][retry]);
+};
+
 export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(max-width: 640px) 50vw, 25vw" }) =>
   id ? (
     <img
@@ -11,6 +26,7 @@ export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(m
       alt={alt}
       loading={loading}
       decoding="async"
+      onError={retryImageAfterTransientError}
       className={`object-cover ${className}`}
     />
   ) : (
