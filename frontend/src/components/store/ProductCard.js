@@ -2,10 +2,18 @@ import { Shirt } from "lucide-react";
 import { brl } from "@/lib/api";
 import { categoryLabel, effectivePrice, imgUrl, pixPrice } from "@/lib/catalog";
 
-const retryImageAfterTransientError = (event) => {
+const retryImageAfterTransientError = (event, id) => {
   const image = event.currentTarget;
   const retry = Number(image.dataset.retry || 0);
-  if (retry >= 3) return;
+  if (retry >= 6) {
+    if (image.dataset.originalFallback) return;
+    image.dataset.originalFallback = "1";
+    image.removeAttribute("srcset");
+    const fallback = new URL(imgUrl(id), window.location.href);
+    fallback.searchParams.set("retry", "original");
+    image.src = fallback.toString();
+    return;
+  }
 
   image.dataset.retry = String(retry + 1);
   window.setTimeout(() => {
@@ -14,7 +22,7 @@ const retryImageAfterTransientError = (event) => {
     url.searchParams.set("retry", String(retry + 1));
     image.removeAttribute("srcset");
     image.src = url.toString();
-  }, [1500, 3000, 6000][retry]);
+  }, [1500, 3000, 6000, 10000, 15000, 20000][retry]);
 };
 
 export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(max-width: 640px) 50vw, 25vw" }) =>
@@ -26,7 +34,7 @@ export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(m
       alt={alt}
       loading={loading}
       decoding="async"
-      onError={retryImageAfterTransientError}
+      onError={(event) => retryImageAfterTransientError(event, id)}
       className={`object-cover ${className}`}
     />
   ) : (
