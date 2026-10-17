@@ -2,9 +2,17 @@ import { Shirt } from "lucide-react";
 import { brl } from "@/lib/api";
 import { categoryLabel, effectivePrice, imgUrl, pixPrice } from "@/lib/catalog";
 
-export const ProductPhoto = ({ id, alt, className, loading = "lazy" }) =>
+export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(max-width: 640px) 50vw, 25vw" }) =>
   id ? (
-    <img src={imgUrl(id)} alt={alt} loading={loading} decoding="async" className={`object-cover ${className}`} />
+    <img
+      src={imgUrl(id, 800)}
+      srcSet={[480, 800, 1200].map((width) => `${imgUrl(id, width)} ${width}w`).join(", ")}
+      sizes={sizes}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      className={`object-cover ${className}`}
+    />
   ) : (
     <div className={`flex items-center justify-center bg-[#E6D8C5] text-[#8B7355] ${className}`}><Shirt className="w-10 h-10" /></div>
   );

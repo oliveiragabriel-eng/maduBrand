@@ -185,7 +185,8 @@ const Gallery = ({ photos, active, onPick, name }) => {
       const image = new Image();
       image.decoding = "async";
       image.onload = image.onerror = loadNext;
-      image.src = imgUrl(pending[next++]);
+      const width = typeof window !== "undefined" && window.innerWidth > 768 ? 800 : 480;
+      image.src = imgUrl(pending[next++], width);
     };
 
     // Load every photo of the opened product, but only two at a time so the
@@ -209,6 +210,7 @@ const Gallery = ({ photos, active, onPick, name }) => {
           id={photos[active]}
           alt={name}
           loading="eager"
+          sizes="(max-width: 768px) 100vw, 50vw"
           className="w-full aspect-[3/4] md:h-full md:aspect-auto md:min-h-[520px]"
         />
 
@@ -250,7 +252,7 @@ const Gallery = ({ photos, active, onPick, name }) => {
                 i === active ? "ring-[#2B1810]" : "ring-transparent"
               }`}
             >
-              <ProductPhoto id={id} alt="" className="w-full h-full" />
+              <ProductPhoto id={id} alt="" sizes="56px" className="w-full h-full" />
             </button>
           ))}
         </div>

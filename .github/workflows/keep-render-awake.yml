@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Render health endpoint
-        run: curl --fail --silent --show-error --max-time 30 https://madu-brand-api.onrender.com/health
+        run: curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 90 https://madu-brand-api.onrender.com/health

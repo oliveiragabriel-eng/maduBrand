@@ -8,7 +8,7 @@ export const CATEGORIES = [
 
 export const categoryLabel = (v) => CATEGORIES.find((c) => c.value === v)?.label || v;
 
-export const imgUrl = (id) => `${process.env.REACT_APP_BACKEND_URL}/api/public/images/${id}`;
+export const imgUrl = (id, width) => `${process.env.REACT_APP_BACKEND_URL}/api/public/images/${id}${width ? `?w=${width}` : ""}`;
 
 export const effectivePrice = (variant) => variant?.promotional_price ?? variant?.price ?? 0;
 export const pixPrice = (price) => Number(price || 0) * 0.95;

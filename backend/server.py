@@ -8,6 +8,8 @@ import os
 import re
 import logging
 import time
+import io
+from collections import OrderedDict
 from datetime import datetime, timezone, timedelta
 from typing import Annotated, List, Literal, Optional
 from zoneinfo import ZoneInfo
@@ -16,13 +18,14 @@ import bcrypt
 import jwt
 from bson import ObjectId
 import json
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, UploadFile, File, Query
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 from starlette.concurrency import run_in_threadpool
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 from starlette.middleware.cors import CORSMiddleware
+from PIL import Image, ImageOps
 
 client = AsyncIOMotorClient(os.environ['MONGO_URL'])
 db = client[os.environ['DB_NAME']]
@@ -33,6 +36,36 @@ app = FastAPI()
 api = APIRouter(prefix="/api")
 PUBLIC_CATALOG_CACHE_TTL = 60
 _public_catalog_cache = None
+_image_variant_cache = OrderedDict()
+_image_variant_cache_bytes = 0
+IMAGE_VARIANT_CACHE_MAX_BYTES = 24 * 1024 * 1024
+
+
+def resize_public_image(data: bytes, width: int, quality: int) -> bytes:
+    with Image.open(io.BytesIO(data)) as source:
+        image = ImageOps.exif_transpose(source)
+        image.thumbnail((width, 1600), Image.Resampling.LANCZOS)
+        if image.mode not in ("RGB", "RGBA"):
+            image = image.convert("RGB")
+        output = io.BytesIO()
+        image.save(output, format="WEBP", quality=quality, method=6)
+        return output.getvalue()
+
+
+async def public_image_variant(data: bytes, file_id: str, width: int, quality: int):
+    global _image_variant_cache_bytes
+    key = (file_id, width, quality)
+    cached = _image_variant_cache.get(key)
+    if cached:
+        _image_variant_cache.move_to_end(key)
+        return cached
+    variant = await run_in_threadpool(resize_public_image, data, width, quality)
+    _image_variant_cache[key] = variant
+    _image_variant_cache_bytes += len(variant)
+    while _image_variant_cache_bytes > IMAGE_VARIANT_CACHE_MAX_BYTES and _image_variant_cache:
+        _, removed = _image_variant_cache.popitem(last=False)
+        _image_variant_cache_bytes -= len(removed)
+    return variant
 
 
 @app.get("/health", include_in_schema=False)
@@ -236,7 +269,11 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
 
 
 @api.get("/public/images/{file_id}")
-async def public_image(file_id: str):
+async def public_image(
+    file_id: str,
+    width: Optional[int] = Query(default=None, alias="w", ge=320, le=1600),
+    quality: int = Query(default=78, alias="q", ge=60, le=90),
+):
     rec = await db.files.find_one({"file_id": file_id, "is_deleted": False})
     if not rec or not ObjectId.is_valid(file_id):
         raise HTTPException(404, "Imagem não encontrada")
@@ -245,6 +282,9 @@ async def public_image(file_id: str):
         data = await stream.read()
     except Exception:
         raise HTTPException(404, "Imagem não encontrada")
+    if width:
+        data = await public_image_variant(data, file_id, width, quality)
+        return Response(content=data, media_type="image/webp", headers={"Cache-Control": "public, max-age=31536000, immutable"})
     return Response(content=data, media_type=rec["content_type"], headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 

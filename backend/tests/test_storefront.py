@@ -70,6 +70,11 @@ def test_upload_image_and_fetch_public(auth_headers, jpg_bytes, created_resource
     assert r2.headers.get("content-type", "").startswith("image/")
     assert len(r2.content) > 100
 
+    resized = requests.get(f"{BASE_URL}/api/public/images/{file_id}?w=480", timeout=60)
+    assert resized.status_code == 200
+    assert resized.headers.get("content-type", "").startswith("image/webp")
+    assert len(resized.content) > 100
+
 
 def test_public_image_404(auth_headers):
     r = requests.get(f"{BASE_URL}/api/public/images/nonexistent-id-xyz", timeout=30)
