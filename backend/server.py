@@ -30,6 +30,7 @@ from PIL import Image, ImageOps
 client = AsyncIOMotorClient(os.environ['MONGO_URL'])
 db = client[os.environ['DB_NAME']]
 image_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="product_images")
+image_variant_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="product_image_variants")
 
 JWT_ALGORITHM = "HS256"
 app = FastAPI()
@@ -39,6 +40,8 @@ _public_catalog_cache = None
 _image_variant_cache = OrderedDict()
 _image_variant_cache_bytes = 0
 IMAGE_VARIANT_CACHE_MAX_BYTES = 24 * 1024 * 1024
+IMAGE_VARIANT_WIDTHS = (480, 800, 1200)
+IMAGE_VARIANT_QUALITY = 78
 
 
 def resize_public_image(data: bytes, width: int, quality: int) -> bytes:
@@ -66,6 +69,33 @@ async def public_image_variant(data: bytes, file_id: str, width: int, quality: i
         _, removed = _image_variant_cache.popitem(last=False)
         _image_variant_cache_bytes -= len(removed)
     return variant
+
+
+async def store_pre_generated_variants(file_id: str, original: bytes):
+    """Create durable WebP variants without replacing the original upload."""
+    for width in IMAGE_VARIANT_WIDTHS:
+        existing = await db.image_variants.find_one({
+            "source_file_id": file_id, "width": width, "quality": IMAGE_VARIANT_QUALITY,
+        })
+        if existing:
+            continue
+        data = await run_in_threadpool(resize_public_image, original, width, IMAGE_VARIANT_QUALITY)
+        upload = image_variant_bucket.open_upload_stream(
+            f"{file_id}-{width}.webp",
+            metadata={"source_file_id": file_id, "width": width, "quality": IMAGE_VARIANT_QUALITY, "content_type": "image/webp"},
+        )
+        await upload.write(data)
+        await upload.close()
+        await db.image_variants.update_one(
+            {"source_file_id": file_id, "width": width, "quality": IMAGE_VARIANT_QUALITY},
+            {"$setOnInsert": {
+                "source_file_id": file_id, "variant_file_id": str(upload._id),
+                "width": width, "quality": IMAGE_VARIANT_QUALITY,
+                "content_type": "image/webp", "bytes": len(data),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }},
+            upsert=True,
+        )
 
 
 @app.get("/health", include_in_schema=False)
@@ -265,6 +295,7 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
         "is_deleted": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
+    await store_pre_generated_variants(file_id, data)
     return {"id": file_id}
 
 
@@ -277,6 +308,18 @@ async def public_image(
     rec = await db.files.find_one({"file_id": file_id, "is_deleted": False})
     if not rec or not ObjectId.is_valid(file_id):
         raise HTTPException(404, "Imagem não encontrada")
+    variant = None
+    if width:
+        variant = await db.image_variants.find_one({
+            "source_file_id": file_id, "width": width, "quality": quality,
+        })
+        if variant and ObjectId.is_valid(variant.get("variant_file_id", "")):
+            try:
+                variant_stream = await image_variant_bucket.open_download_stream(ObjectId(variant["variant_file_id"]))
+                data = await variant_stream.read()
+                return Response(content=data, media_type="image/webp", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+            except Exception:
+                pass
     try:
         stream = await image_bucket.open_download_stream(ObjectId(file_id))
         data = await stream.read()
