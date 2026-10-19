@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Minus,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogTitle,
   DialogDescription,
@@ -88,11 +90,24 @@ export const ProductDialog = ({ product, onClose }) => {
   return (
     <Dialog open={!!product} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
+        showClose={false}
         className="bg-[#F3ECE2] border-[#2B1810]/10 max-w-4xl p-0 overflow-hidden max-h-[92vh] overflow-y-auto"
         data-testid="product-dialog"
       >
         {product && (
-          <div className="grid md:grid-cols-2">
+          <div className="relative grid md:grid-cols-2">
+            <DialogClose asChild>
+              <button
+                type="button"
+                aria-label="Voltar para a vitrine"
+                data-testid="product-dialog-back"
+                className="absolute left-4 top-4 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#2B1810] text-[#F3ECE2] shadow-lg transition-colors hover:bg-[#5A3A26] focus:outline-none focus:ring-2 focus:ring-[#D4A373] focus:ring-offset-2 focus:ring-offset-[#F3ECE2]"
+              >
+                <ArrowLeft className="h-7 w-7" strokeWidth={2.25} />
+                <span className="sr-only">Voltar</span>
+              </button>
+            </DialogClose>
+
             <Gallery
               photos={photos}
               active={photo}
