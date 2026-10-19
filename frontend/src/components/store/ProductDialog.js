@@ -225,6 +225,7 @@ const Gallery = ({ photos, active, onPick, name }) => {
           id={photos[active]}
           alt={name}
           loading="eager"
+          fetchPriority="high"
           sizes="(max-width: 768px) 100vw, 50vw"
           className="w-full aspect-[3/4] md:h-full md:aspect-auto md:min-h-[520px]"
         />

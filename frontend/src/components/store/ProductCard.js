@@ -25,7 +25,7 @@ const retryImageAfterTransientError = (event, id) => {
   }, [1500, 3000, 6000, 10000, 15000, 20000][retry]);
 };
 
-export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(max-width: 640px) 50vw, 25vw" }) =>
+export const ProductPhoto = ({ id, alt, className, loading = "lazy", fetchPriority = "auto", sizes = "(max-width: 640px) 50vw, 25vw" }) =>
   id ? (
     <img
       src={imgUrl(id, 800)}
@@ -33,6 +33,7 @@ export const ProductPhoto = ({ id, alt, className, loading = "lazy", sizes = "(m
       sizes={sizes}
       alt={alt}
       loading={loading}
+      fetchPriority={fetchPriority}
       decoding="async"
       onError={(event) => retryImageAfterTransientError(event, id)}
       className={`object-cover ${className}`}
