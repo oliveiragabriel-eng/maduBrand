@@ -1,70 +1,65 @@
-# Getting Started with Create React App
+# Frontend da Madu Brand
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicação React responsável pela vitrine pública e pelo painel administrativo da Madu Brand.
 
-## Available Scripts
+## Responsabilidades
 
-In the project directory, you can run:
+- Exibir o catálogo público sem exigir login.
+- Organizar as peças por categoria.
+- Mostrar fotos responsivas em cards e no modal de detalhes.
+- Permitir navegação circular entre as fotos de uma peça.
+- Exibir preço normal, preço promocional e a indicação de 5% para Pix, dinheiro ou débito.
+- Abrir o WhatsApp com os dados da seleção da cliente.
+- Oferecer o painel administrativo em `/painel-mb`, carregado sob demanda.
 
-### `npm start`
+A vitrine é somente para visualização. O frontend não possui checkout nem processa pagamentos. A compra é negociada e finalizada diretamente pelo WhatsApp.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Desenvolvimento local
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Na pasta `frontend`:
 
-### `npm test`
+```bash
+npm install
+cp .env.example .env
+npm start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Configure em `.env` a URL do backend, sem acrescentar `/api` ao final:
 
-### `npm run build`
+```env
+REACT_APP_BACKEND_URL=http://127.0.0.1:8000
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+A aplicação fica disponível em `http://localhost:3000`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Scripts
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm start                         # servidor de desenvolvimento
+npm test -- --watchAll=false     # testes sem modo interativo
+npm run build                     # build de produção em build/
+```
 
-### `npm run eject`
+## Organização do código
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- `src/pages/Storefront.js`: página pública do catálogo.
+- `src/components/store/`: cards, navegação, footer e modal/carrossel de produtos.
+- `src/pages/Login.js`: login administrativo.
+- `src/pages/Dashboard.js`: painel administrativo.
+- `src/components/ClothingForm.js`: cadastro e edição de peças.
+- `src/components/Inventory.js`: estoque e catálogo interno.
+- `src/components/Sales.js` e `src/components/SaleForm.js`: vendas internas.
+- `src/components/Finance.js`: indicadores financeiros.
+- `src/components/Assistant.js`: assistente baseado nas regras disponíveis no backend.
+- `src/lib/catalog.js`: cache curto do catálogo, preços, categorias e URLs de imagem.
+- `src/lib/api.js`: cliente HTTP do backend.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Decisões de performance
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Login e Dashboard usam code splitting e não entram no carregamento inicial da vitrine.
+- O catálogo pode ser exibido rapidamente a partir de cache curto no `localStorage`.
+- Fotos usam `srcset`, `sizes`, variantes WebP e carregamento prioritário da primeira foto do modal.
+- Fotos seguintes são pré-carregadas de maneira controlada.
+- Falhas temporárias de imagem possuem retentativas progressivas e fallback.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Para a documentação completa do produto, arquitetura, deploy, limitações e dificuldades encontradas, consulte o [README principal](../README.md).
