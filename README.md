@@ -4,8 +4,6 @@ Site de uma loja de moda feminina com duas partes: uma vitrine pública, onde a 
 
 Online em https://madu-brand.vercel.app
 
-![Vitrine da Madu Brand](./docs/vitrine.png)
-
 ## Como a compra funciona
 
 Não tem checkout. A vitrine mostra o catálogo e a venda acontece no WhatsApp.
