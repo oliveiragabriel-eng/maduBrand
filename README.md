@@ -1,160 +1,113 @@
 # Madu Brand
 
-Catálogo digital e painel interno de gestão para a Madu Brand, uma loja de moda feminina.
+Site de uma loja de moda feminina com duas partes: uma vitrine pública, onde a cliente vê as peças, e um painel interno para a dona da loja cuidar de estoque, vendas e finanças.
 
-> **Importante:** a vitrine pública é destinada à visualização dos produtos. Ela não é um checkout e não processa pagamentos, pedidos ou entregas. Quando a cliente escolhe uma peça, a conversa é aberta no WhatsApp com os dados da seleção. A negociação e a finalização da compra acontecem fora do sistema, pelo WhatsApp da loja.
+Online em https://madu-brand.vercel.app
 
-## Objetivo do projeto
+![Vitrine da Madu Brand](./docs/vitrine.png)
 
-O projeto foi criado para apresentar as peças da Madu Brand de forma elegante, rápida e adaptada a celulares, mantendo o processo comercial simples: a cliente consulta o catálogo, escolhe a peça, cor, tamanho e quantidade, e entra em contato pelo WhatsApp.
+## Como a compra funciona
 
-Além da vitrine pública, existe um painel administrativo protegido por login para organizar o catálogo, acompanhar estoque, consultar dados financeiros e registrar vendas internas. O painel não transforma a vitrine em uma loja virtual com pagamento automático; ele serve para a gestão da loja.
+Não tem checkout. A vitrine mostra o catálogo e a venda acontece no WhatsApp.
 
-## Como funciona para a cliente
+A cliente entra sem login, filtra por categoria (Bodies, Croppeds, Vestidos, Saias e Calças), abre a peça, passa pelas fotos, escolhe cor, tamanho e quantidade e clica em **Comprar pelo WhatsApp**. O botão abre a conversa já com nome da peça, categoria, cor, tamanho, quantidade, valor e descrição. Pagamento, entrega e disponibilidade são combinados ali, com a loja.
 
-1. A cliente acessa a página inicial sem fazer login.
-2. Visualiza as peças por categoria: Bodies, Croppeds, Vestidos, Saias e Calças.
-3. Abre os detalhes de uma peça e navega entre as fotos pelo carrossel.
-4. Escolhe cor, tamanho e quantidade disponíveis.
-5. Visualiza o preço normal, o valor promocional quando cadastrado e a indicação de 5% de desconto para Pix, dinheiro ou débito.
-6. Clica em **Comprar pelo WhatsApp**.
-7. O sistema abre uma conversa no WhatsApp com o nome da peça, categoria, cor, tamanho, quantidade, valor e descrição. A equipe da Madu Brand confirma disponibilidade, pagamento, entrega e demais condições diretamente com a cliente.
+Os preços aparecem em duas versões: o normal (ou promocional, quando existe) e o valor com 5% de desconto para Pix, dinheiro ou débito.
 
-O catálogo não confirma estoque em tempo real durante a conversa, não cobra a cliente e não registra automaticamente um pedido originado pelo botão do WhatsApp.
+## Painel administrativo
 
-## Funcionalidades do painel administrativo
+Fica em `/painel-mb`, sem link visível na vitrine, com login por telefone e senha. Dentro dele dá para:
 
-O painel fica separado da vitrine pública em `/painel-mb` e inclui:
+- cadastrar, editar, buscar e excluir peças (categoria, descrição, cor, tamanho, custo, preço, preço promocional, quantidade e várias fotos);
+- acompanhar o estoque;
+- ver os números da loja: investimento, faturamento esperado, lucro projetado, margem e médias por peça;
+- registrar vendas e vendas condicionais, com baixa automática no estoque;
+- ver o resumo do mês: o que entrou, o que está pendente e quantas condicionais estão abertas;
+- perguntar ao assistente sobre estoque e finanças. Ele responde com regras e cálculos feitos no próprio backend, sem API de IA externa.
 
-- login por telefone e senha;
-- cadastro, edição, busca e exclusão de peças;
-- categoria, descrição, tamanho, cor, custo, preço, valor promocional e quantidade;
-- upload de várias fotos por peça;
-- controle de estoque;
-- indicadores financeiros, incluindo investimento, faturamento esperado, lucro projetado, margem e médias;
-- registro interno de vendas e vendas condicionais, com atualização de estoque;
-- resumo mensal de vendas, recebimentos, pendências e condicionais;
-- assistente baseado em regras locais para consultar informações do estoque e da gestão;
-- saída do painel com retorno para a Home.
-
-As vendas registradas no painel são operações internas de controle da loja. Elas são independentes do botão público de compra pelo WhatsApp.
-
-## Arquitetura
-
-O projeto é dividido em duas aplicações:
-
-```text
-maduBrand/
-├── frontend/                 # React, Tailwind CSS e componentes da vitrine/painel
-│   ├── public/               # assets estáticos, como imagens usadas no login
-│   └── src/
-│       ├── components/store/ # cards, navegação e modal/carrossel da vitrine
-│       ├── components/       # formulários, estoque, vendas, finanças e assistente
-│       ├── pages/            # Storefront, Login e Dashboard
-│       └── lib/              # API, catálogo, preços e URLs de imagens
-├── backend/                  # FastAPI, autenticação, catálogo e regras de negócio
-│   ├── server.py
-│   ├── scripts/              # scripts de manutenção, incluindo variantes WebP
-│   └── tests/                # testes da API, vendas, vitrine e assistente
-└── .github/workflows/        # automações de monitoramento
-```
-
-### Frontend
-
-O frontend usa React com Create React App/CRACO, Tailwind CSS, React Router e Lucide Icons. A vitrine é a rota `/`. As telas administrativas são carregadas sob demanda para não aumentar o carregamento inicial da vitrine.
-
-O catálogo público usa cache curto no `localStorage`, atualiza os dados em segundo plano e possui tratamento para falhas temporárias de imagens. O modal de produto usa imagens responsivas, carrossel circular, miniaturas e pré-carregamento controlado das fotos seguintes.
-
-### Backend
-
-O backend usa FastAPI, Motor/PyMongo e MongoDB Atlas. Ele fornece:
-
-- autenticação e sessão administrativa;
-- CRUD de peças e variantes;
-- catálogo público agrupado por nome e categoria;
-- rota leve `/health` para monitoramento;
-- upload e entrega de imagens pelo GridFS;
-- preços promocionais e validações de estoque;
-- registros de vendas, condicionais, finanças e assistente local.
-
-### Banco e imagens
-
-As imagens originais ficam no GridFS do MongoDB no bucket `product_images`. Elas não são substituídas durante a otimização.
-
-Para reduzir o processamento durante o primeiro acesso, foram geradas variantes WebP no bucket `product_image_variants` nos tamanhos de 480, 800 e 1200 pixels. A aplicação escolhe uma versão responsiva de acordo com o espaço disponível na tela e envia cabeçalhos de cache de longa duração para arquivos imutáveis.
-
-A migração realizada processou 42 imagens originais e criou 126 variantes WebP. Essa operação não alterou os arquivos originais.
+As vendas do painel são controle interno e não têm relação com o botão do WhatsApp da vitrine.
 
 ## Tecnologias
 
-- **Frontend:** React, React Router, Tailwind CSS, CRACO, Axios e Lucide React.
-- **Backend:** Python, FastAPI, Motor/PyMongo, Pydantic, Pillow e JWT.
-- **Banco de dados:** MongoDB Atlas com GridFS para as imagens.
-- **Hospedagem:** frontend publicado na Vercel e backend hospedado no Render.
-- **Monitoramento:** rota `/health`, GitHub Actions e monitor externo de disponibilidade.
-- **Contato comercial:** WhatsApp, aberto pelo frontend com `wa.me`.
+| Parte | O que usei |
+|---|---|
+| Frontend | React 19, React Router, Tailwind CSS, componentes Radix/shadcn, Axios, CRACO |
+| Backend | Python, FastAPI, Motor/PyMongo, Pydantic, JWT, Pillow |
+| Banco | MongoDB Atlas, com GridFS para as fotos |
+| Hospedagem | Vercel (frontend) e Render (backend) |
+| Monitoramento | rota `/health` + GitHub Actions |
 
-## Configuração local
+## Estrutura
 
-### 1. Backend
+```text
+maduBrand/
+├── frontend/
+│   ├── public/
+│   └── src/
+│       ├── pages/        # Storefront, Login, Dashboard
+│       ├── components/   # formulários, estoque, vendas, finanças, assistente
+│       │   └── store/    # cards, navegação e modal com carrossel da vitrine
+│       └── lib/          # cliente da API, catálogo, preços e URLs de imagem
+├── backend/
+│   ├── server.py         # API inteira
+│   ├── scripts/          # geração das variantes WebP
+│   └── tests/
+└── .github/workflows/    # ping periódico no backend
+```
+
+## Rodando na sua máquina
+
+Precisa de Node, Python 3 e um MongoDB (local ou Atlas).
+
+**Backend**
 
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate       # Linux/macOS
+source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+uvicorn server:app --reload --port 8000
 ```
 
-Preencha o arquivo `backend/.env` com valores locais e seguros. As variáveis principais são:
+Antes de subir, preencha o `.env`:
 
 ```env
 MONGO_URL=mongodb://127.0.0.1:27017
 DB_NAME=madu_brand
 CORS_ORIGINS=http://localhost:3000
-JWT_SECRET=um-segredo-aleatorio-forte
-ADMIN_PHONE=seu-telefone
-ADMIN_PASSWORD=uma-senha-forte
-ADMIN_EMAIL=seu-email
+JWT_SECRET=<segredo aleatório com pelo menos 32 bytes>
+ADMIN_PHONE=<só números>
+ADMIN_PASSWORD=<senha forte>
+ADMIN_EMAIL=<seu e-mail>
 ```
 
-Inicie a API:
-
-```bash
-uvicorn server:app --reload --port 8000
-```
-
-### 2. Frontend
+**Frontend**
 
 ```bash
 cd frontend
 npm install
 cp .env.example .env
-```
-
-Configure a URL do backend em `frontend/.env`:
-
-```env
-REACT_APP_BACKEND_URL=http://127.0.0.1:8000
-```
-
-Inicie o frontend:
-
-```bash
 npm start
 ```
 
-A vitrine ficará disponível em `http://localhost:3000` e o painel em `http://localhost:3000/painel-mb/login`.
+No `frontend/.env`, `REACT_APP_BACKEND_URL` aponta para o backend sem `/api` no final (`http://127.0.0.1:8000`).
 
-## Testes e build
+A vitrine abre em `http://localhost:3000` e o painel em `http://localhost:3000/painel-mb/login`.
 
-No backend, execute os testes a partir da pasta `backend`:
+## Testes
+
+Os testes do backend fazem requisições reais a uma API já rodando, então precisam de um banco descartável e de credenciais de teste:
 
 ```bash
+cd backend
+export TEST_BASE_URL=http://127.0.0.1:8000
+export TEST_ADMIN_PHONE=<telefone do admin local>
+export TEST_ADMIN_PASSWORD=<senha do admin local>
 pytest
 ```
 
-Os testes que usam login devem receber credenciais de teste por variáveis de ambiente e apontar para uma base descartável. Não execute testes destrutivos contra o banco de produção.
+Não rode contra o banco de produção, porque os testes criam e apagam dados.
 
 No frontend:
 
@@ -163,66 +116,33 @@ npm test -- --watchAll=false --passWithNoTests
 npm run build
 ```
 
-O build gera os arquivos de produção na pasta `frontend/build`.
+## Problemas que apareceram
 
-## Deploy e operação
+**Backend dormindo.** O plano gratuito do Render suspende o serviço depois de um tempo parado, e a primeira visita sofre com isso. Adicionei a rota `/health`, um workflow do GitHub Actions que bate nela a cada 10 minutos, retentativas no frontend e cache do catálogo. Melhorou bastante, mas o primeiro acesso depois de uma suspensão longa ainda pode demorar.
 
-O fluxo esperado é:
+**Fotos quebrando no celular.** Enquanto o backend acordava, algumas imagens voltavam com erro 502. O frontend agora tenta de novo com intervalo crescente e cai para a imagem original se precisar.
 
-1. desenvolver em uma branch separada;
-2. testar frontend e backend localmente;
-3. abrir Pull Request para `main`;
-4. revisar o diff e os checks;
-5. mesclar somente depois da validação;
-6. deixar a integração do GitHub iniciar o deploy da Vercel e do Render, conforme a configuração dos serviços;
-7. verificar a Home, o catálogo, o modal de fotos, o botão do WhatsApp, o login administrativo e a rota `/health`.
+**Redimensionamento no primeiro acesso.** As fotos antigas eram redimensionadas pelo backend na hora em que alguém pedia, e isso derrubava o servidor pequeno. Gerei as variantes antes, em WebP (480, 800 e 1200 px), com um script em `backend/scripts/`. Foram 42 originais e 126 variantes, e os originais continuam intactos no GridFS.
 
-Não coloque segredos no repositório. Os arquivos `.env` são ignorados pelo Git. As credenciais devem ser configuradas diretamente nas variáveis seguras da plataforma de hospedagem.
+**Carrossel.** O modal precisava de navegação circular sem deixar a segunda foto só começar a carregar depois do clique. As próximas fotos são pré-carregadas, com limite de downloads simultâneos para não atrapalhar a foto principal.
 
-## Dificuldades encontradas e soluções adotadas
+**Peso da vitrine.** Login e Dashboard são carregados só quando alguém entra no painel (code splitting), então a vitrine não paga por isso. O catálogo fica guardado no `localStorage` por 10 minutos e é atualizado em segundo plano.
 
-### Cold start do Render
+## Limitações
 
-O plano gratuito do Render pode suspender o backend após um período sem acesso. Quando isso acontece, a primeira requisição precisa acordar o serviço, o que aumenta o tempo de carregamento tanto da vitrine quanto do painel administrativo.
-
-Foram adicionados uma rota `/health`, monitoramento periódico, retentativas no frontend e cache local do catálogo. Essas medidas reduzem o impacto, mas não eliminam completamente o tempo de despertar de um serviço gratuito.
-
-### Fotos que falhavam principalmente no celular
-
-Durante o despertar do backend, algumas imagens retornavam erros temporários, inclusive 502. O frontend passou a tentar novamente as imagens com intervalos progressivos e fallback para o original. Também foram usadas versões responsivas e carregamento prioritário para a primeira foto aberta no modal.
-
-### Processamento pesado de imagens antigas
-
-As imagens antigas ainda precisavam ser redimensionadas pelo Render na primeira solicitação. Isso sobrecarregava o backend e podia gerar novos erros. A solução foi criar previamente as variantes WebP no MongoDB, preservando os arquivos originais.
-
-### Carrossel e carregamento das fotos seguintes
-
-O modal precisava permitir navegação circular sem deixar a segunda foto sempre para carregar somente depois do clique. O carrossel passou a pré-carregar as fotos seguintes de forma controlada, limitando a concorrência para não competir com a imagem principal nem com a vitrine.
-
-### Primeira visita e visitas recorrentes
-
-Para visitas recorrentes, o catálogo é lido primeiro do `localStorage` por um período curto e atualizado em segundo plano. Para novos dispositivos, foram reduzidos o tamanho das imagens solicitadas e usados `srcset`/`sizes`. A prioridade alta da primeira imagem do modal está sendo avaliada em uma branch separada antes de ser incorporada à `main`.
-
-### Separação entre catálogo e administração
-
-O painel administrativo não deve aumentar o bundle inicial da vitrine. Login e Dashboard são carregados sob demanda. O botão de saída remove a sessão local e leva a pessoa de volta para a Home.
-
-## Limitações conhecidas
-
-- O WhatsApp é o canal de fechamento da compra; não existe checkout, pagamento ou pedido automático no catálogo.
-- O tempo de despertar do Render pode continuar perceptível no primeiro acesso após suspensão.
-- As imagens passam pelo backend/GridFS; uma camada dedicada de armazenamento e CDN poderia reduzir ainda mais a latência, mas exigiria migração de infraestrutura.
-- O caminho `/painel-mb` ajuda a separar a interface, mas não substitui autenticação e autorização no backend.
-- Antes de uma operação comercial maior, recomenda-se revisar autorização por função, rate limiting de login, cookies HttpOnly, validação real dos arquivos enviados e atomicidade das operações de estoque.
+- Sem pagamento nem pedido automático: o fechamento é sempre pelo WhatsApp.
+- As fotos passam pelo backend. Um armazenamento dedicado com CDN seria mais rápido, mas exigiria migrar a infraestrutura.
+- O caminho `/painel-mb` só esconde o painel. A proteção de verdade é o login e a autorização no backend.
+- Antes de crescer, falta revisar permissões por perfil, limite de tentativas de login mais robusto, cookies HttpOnly no lugar do token no `localStorage`, validação real dos arquivos enviados e operações de estoque atômicas.
 
 ## Segurança
 
-- Nunca comite `.env`, senhas, tokens ou strings de conexão.
-- Se uma credencial for exposta, revogue-a e gere outra imediatamente; remover o arquivo não apaga o histórico Git.
-- Restrinja `CORS_ORIGINS` aos domínios reais.
-- Use MongoDB com autenticação, TLS e lista de IPs controlada.
-- Mantenha as variáveis de produção somente na Vercel, Render ou MongoDB Atlas.
+O `.env` está no `.gitignore` e as credenciais de produção ficam só nas variáveis da Vercel, do Render e do Atlas. Se algum segredo vazar, revogue e troque na hora: apagar o arquivo não limpa o histórico do Git.
 
-## Estado do projeto
+## Licença
 
-A `main` contém a vitrine pública, o painel administrativo, o carrossel de fotos, preços promocionais, indicação de desconto para Pix/dinheiro/débito, variantes WebP pré-geradas, cache e as correções de carregamento já incorporadas ao projeto. Melhorias experimentais de prioridade da primeira foto devem ser revisadas na branch correspondente antes de um novo merge.
+Todos os direitos reservados. Ninguém pode copiar, modificar, distribuir ou usar o projeto sem autorização do autor. Detalhes no arquivo [LICENSE](./LICENSE).
+
+## Autor
+
+Gabriel de Souza Oliveira
