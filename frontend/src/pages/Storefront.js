@@ -37,7 +37,7 @@ export default function Storefront() {
     <div className="holiday-store min-h-screen bg-[#F3ECE2]">
       <StoreNav category={category} onPick={pick} />
       <Hero onShop={() => pick("todos")} />
-      <main id="catalogo" className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pb-24 scroll-mt-28">
+      <main id="catalogo" className="max-w-7xl mx-auto px-5 sm:px-8 pt-6 sm:pt-12 pb-16 sm:pb-24 scroll-mt-28">
         <div className="flex items-end justify-between gap-4 mb-10">
           <div>
             <h2 className="font-serif text-4xl sm:text-5xl holiday-collection-title" data-testid="store-section-title">{title}</h2>
