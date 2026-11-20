@@ -50,7 +50,7 @@ body {
   top: 28%;
   right: 17%;
   background: var(--holiday-wine);
-  box-shadow: 34px 34px 0 -1px var(--holiday-gold), -24px 68px 0 -2px var(--holiday-green), 76px 92px 0 -2px var(--holiday-wine);
+  box-shadow: 34px 34px 0 -1px var(--holiday-gold), -24px 68px 0 -2px var(--holiday-green), 76px 92px 0 -2px var(--holiday-wine), 118px 48px 0 -3px var(--holiday-green), 52px 124px 0 -3px var(--holiday-gold);
 }
 
 .holiday-hero::after {
@@ -59,7 +59,7 @@ body {
   top: 43%;
   right: 7%;
   background: var(--holiday-green);
-  box-shadow: -48px 35px 0 -1px var(--holiday-gold), -76px -36px 0 -1px var(--holiday-wine);
+  box-shadow: -48px 35px 0 -1px var(--holiday-gold), -76px -36px 0 -1px var(--holiday-wine), -104px 72px 0 -2px var(--holiday-green), -28px 102px 0 -2px var(--holiday-gold);
 }
 
 .holiday-collection-title {
