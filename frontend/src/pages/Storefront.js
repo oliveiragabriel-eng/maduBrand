@@ -61,19 +61,11 @@ export default function Storefront() {
   );
 }
 
-const HolidayHat = () => (
-  <span className="holiday-hat" aria-hidden="true">
-    <span className="holiday-hat-pom" />
-    <span className="holiday-hat-cone" />
-    <span className="holiday-hat-trim" />
-  </span>
-);
-
 const Hero = ({ onShop }) => (
   <section className="holiday-hero relative max-w-7xl mx-auto px-5 sm:px-8 pt-20 sm:pt-28 pb-4 fade-up" data-testid="store-hero">
     <p className="text-xs uppercase tracking-[0.35em] text-[#8B7355]">Moda feminina</p>
     <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl text-[#2B1810] leading-[0.95] mt-4" data-testid="store-hero-title">
-      Catálogo <span className="holiday-brand-mark italic text-[#8B7355]">Madu Brand<HolidayHat /></span>
+      Catálogo <span className="holiday-brand-mark italic text-[#8B7355]">Madu Brand<img src="/natal-santa-hat-small.png" alt="" aria-hidden="true" className="holiday-hat-image" /></span>
     </h1>
     <p className="holiday-season-note mt-5 max-w-md text-sm sm:text-base text-[#6B5A4E]">Detalhes escolhidos para celebrar o fim do ano com a leveza da Madu.</p>
     <button data-testid="hero-shop-button" onClick={onShop} className="mt-8 text-sm text-[#2B1810] border-b border-[#2B1810]/40 pb-1 hover:border-[#2B1810] transition-colors">Ver peças</button>
