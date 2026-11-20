@@ -62,7 +62,7 @@ body {
   box-shadow: -48px 35px 0 -1px var(--holiday-gold), -76px -36px 0 -1px var(--holiday-wine);
 }
 
-.holiday-collection-label {
+.holiday-collection-title {
   color: var(--holiday-wine) !important;
 }
 

@@ -26,7 +26,7 @@ export default function Storefront() {
   }, []);
 
   const list = useMemo(() => (products || []).filter((p) => category === "todos" || p.category === category), [products, category]);
-  const title = category === "todos" ? "Todas as peças" : CATEGORIES.find((c) => c.value === category).label;
+  const title = category === "todos" ? "Coleção especial final do ano" : CATEGORIES.find((c) => c.value === category).label;
 
   const pick = (c) => {
     setCategory(c);
@@ -40,8 +40,7 @@ export default function Storefront() {
       <main id="catalogo" className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-16 sm:pb-24 scroll-mt-28">
         <div className="flex items-end justify-between gap-4 mb-10">
           <div>
-            <p className="holiday-collection-label text-xs font-semibold uppercase tracking-[0.3em] text-[#8B7355]">Coleção especial final do ano</p>
-            <h2 className="font-serif text-4xl sm:text-5xl text-[#2B1810] mt-2" data-testid="store-section-title">{title}</h2>
+            <h2 className="font-serif text-4xl sm:text-5xl holiday-collection-title" data-testid="store-section-title">{title}</h2>
           </div>
           <p className="text-sm text-[#6B5A4E]" data-testid="store-product-count">{list.length} {list.length === 1 ? "peça" : "peças"}</p>
         </div>
