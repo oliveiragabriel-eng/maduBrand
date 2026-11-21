@@ -28,3 +28,81 @@ body {
 .brown-blend {
   background: linear-gradient(135deg, #2B1810 0%, #5A3A26 55%, #8B7355 100%);
 }
+
+.holiday-store {
+  --holiday-wine: #8F2638;
+  --holiday-green: #285347;
+  --holiday-gold: #B68A45;
+}
+
+.holiday-hero::before,
+.holiday-hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+  opacity: 0.55;
+}
+
+.holiday-hero {
+  background-image:
+    radial-gradient(circle at 72% 18%, rgba(143, 38, 56, 0.68) 0 4px, transparent 4.5px),
+    radial-gradient(circle at 79% 24%, rgba(182, 138, 69, 0.68) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 88% 38%, rgba(40, 83, 71, 0.68) 0 4px, transparent 4.5px),
+    radial-gradient(circle at 92% 20%, rgba(143, 38, 56, 0.58) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 68% 34%, rgba(40, 83, 71, 0.55) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 76% 42%, rgba(182, 138, 69, 0.6) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 84% 50%, rgba(143, 38, 56, 0.58) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 94% 44%, rgba(40, 83, 71, 0.58) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 63% 52%, rgba(182, 138, 69, 0.55) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 73% 60%, rgba(40, 83, 71, 0.52) 0 2px, transparent 2.5px);
+}
+
+.holiday-hero::before {
+  width: 8px;
+  height: 8px;
+  top: 28%;
+  right: 17%;
+  background: var(--holiday-wine);
+  box-shadow: 34px 34px 0 -1px var(--holiday-gold), -24px 68px 0 -2px var(--holiday-green), 76px 92px 0 -2px var(--holiday-wine), 118px 48px 0 -3px var(--holiday-green), 52px 124px 0 -3px var(--holiday-gold), 152px 18px 0 -3px var(--holiday-wine), 142px 116px 0 -3px var(--holiday-gold), 18px 148px 0 -3px var(--holiday-green), 188px 64px 0 -3px var(--holiday-gold), 172px 142px 0 -3px var(--holiday-wine), 94px 166px 0 -3px var(--holiday-green), 226px 104px 0 -3px var(--holiday-green), 202px 154px 0 -3px var(--holiday-gold), 8px 28px 0 -3px var(--holiday-wine);
+}
+
+.holiday-hero::after {
+  width: 5px;
+  height: 5px;
+  top: 43%;
+  right: 7%;
+  background: var(--holiday-green);
+  box-shadow: -48px 35px 0 -1px var(--holiday-gold), -76px -36px 0 -1px var(--holiday-wine), -104px 72px 0 -2px var(--holiday-green), -28px 102px 0 -2px var(--holiday-gold), -132px 12px 0 -3px var(--holiday-green), -118px 124px 0 -3px var(--holiday-wine), -62px 148px 0 -3px var(--holiday-gold), -156px 54px 0 -3px var(--holiday-wine), -148px 164px 0 -3px var(--holiday-green), -88px 186px 0 -3px var(--holiday-gold), -14px 168px 0 -3px var(--holiday-wine), -184px 98px 0 -3px var(--holiday-gold), -204px 148px 0 -3px var(--holiday-green);
+}
+
+.holiday-collection-title {
+  color: var(--holiday-wine) !important;
+}
+
+.holiday-season-note::before {
+  content: "✦";
+  color: var(--holiday-gold);
+  margin-right: 0.55rem;
+}
+
+.holiday-brand-mark {
+  position: relative;
+  display: inline-block;
+}
+
+.holiday-hat-image {
+  position: absolute;
+  width: 0.78em;
+  height: 0.78em;
+  top: -0.38em;
+  right: -0.2em;
+  object-fit: contain;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .holiday-hero::before { right: 12%; }
+  .holiday-hero::after { right: 2%; }
+}
