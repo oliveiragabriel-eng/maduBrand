@@ -44,6 +44,20 @@ body {
   opacity: 0.55;
 }
 
+.holiday-hero {
+  background-image:
+    radial-gradient(circle at 72% 18%, rgba(143, 38, 56, 0.68) 0 4px, transparent 4.5px),
+    radial-gradient(circle at 79% 24%, rgba(182, 138, 69, 0.68) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 86% 30%, rgba(40, 83, 71, 0.68) 0 4px, transparent 4.5px),
+    radial-gradient(circle at 92% 20%, rgba(143, 38, 56, 0.58) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 68% 34%, rgba(40, 83, 71, 0.55) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 76% 42%, rgba(182, 138, 69, 0.6) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 84% 50%, rgba(143, 38, 56, 0.58) 0 3px, transparent 3.5px),
+    radial-gradient(circle at 94% 44%, rgba(40, 83, 71, 0.58) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 63% 52%, rgba(182, 138, 69, 0.55) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 73% 60%, rgba(40, 83, 71, 0.52) 0 2px, transparent 2.5px);
+}
+
 .holiday-hero::before {
   width: 8px;
   height: 8px;
